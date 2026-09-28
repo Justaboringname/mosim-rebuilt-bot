@@ -10,6 +10,28 @@ The work was done by Claude (Anthropic's AI) under the user's direction. Every e
 
 *Human 1118 (left) vs the bot's best match, 1084 (right). Click to open the interactive replay. The segment-by-segment comparison is in [Human 1118 vs bot 1084](#human-1118-vs-bot-1084-the-bots-best-match).*
 
+## At a glance
+
+**How much was run:** about **5,400 full matches** in the real game (3,054 in 76 A/B batches, 2,161 inside CMA-ES tuning, 206 as RL-sampler main matches), about **9,000 partial rollouts** restored from snapshots, about **10,000 episodes** in our own simulator, and 9 recorded human demos (one is published here).
+
+**Every architecture and method tried.** None of them beat plain demo tracking:
+
+| # | Architecture / method | Result |
+|---|---|---|
+| 1 | Scripted waypoint policy | 148 / 139, before any human demo |
+| 2 | **Demo tracking** (ghost tracker: PD + the human's stick as feed-forward) + CMA-ES over its gains + diagnosed execution fixes | **≈ 1021, the final bot** |
+| 3 | Rule-based deviations from the route: greedy lateral offsets, CMA segment shifts, route splicing, free ball seeking, offline-model-bent routes | All lost (751–869 vs 897–1025 controls) |
+| 4 | PPO in the real game (residual on the tracker: lateral offset + time warp, CNN over ball grids) | 1 iteration: exploring policy 784 vs control 905; moved to a simulator |
+| 5 | Own simulator (MiniSim: PhysX-parameter ball physics + re-implemented match logic) + PPO (CNN residual, domain randomization, potential shaping) | Sim +38 / +52 → real −32 / −33 |
+| 6 | Real-engine MPC: snapshot lookahead over sweeps, offsets, time warps, route switches | Single matches 987 / 892 / 1031; never beat tracking |
+| 7 | Reactive ball-aware steering (LBS), pile registration (REG) | −34 / −24 owned balls per dead window |
+| 8 | Whole-window coverage planning: static intake estimator + beam search (CR) | −106 owned per dead window |
+| 9 | Execution rules: intake-first heading, yaw-rate caps, slide guard, intake pulsing, ManualShoot, shot tails/leads, CMA over button timing | All null or negative (e.g. yaw cap −18 over full matches) |
+| 10 | Real-engine option learning: randomized options + ridge credit assignment, contextual-bandit-style RL, ≈ 4,000 rollouts | −0.6 ± 0.5 per match |
+| 11 | Exact-replay (TAS-style) search | Impossible: the engine is not deterministic |
+
+**Outcome:** the final bot averages ≈ 1021 (best 1084), against the human's 1118 and the 1200 target. The only gains came from diagnosing execution errors: tracker gains +85, the clock fix, heading timing +25. Details follow.
+
 ## The short version
 
 | | Score | Notes |
