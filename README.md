@@ -4,7 +4,11 @@ _Last updated: 2026-09-27_　·　**English** | [中文](README.zh-CN.md)　·�
 
 The goal was a bot that drives FRC team 4414 "HighTide" in [MoSimulator](https://store.steampowered.com/app/4398690/) REBUILT (FRC 2026) on its own. It had to beat the human personal best of **1118**, ideally reaching **1200**. It did not. This document covers what was built, why every path failed, and what we learned about this game and about this kind of problem.
 
-The work was done by Claude (Anthropic's AI) under the user's direction. Every experiment ran on one Mac Studio (M5 Max).
+The work was done by Claude (Anthropic's AI) under the user's direction. Every experiment ran on one Mac Studio (M5 Max). In total it ran about 5,400 full matches in the real game, about 9,000 partial rollouts from snapshots, and about 10,000 episodes in its own simulator.
+
+[![Human 1118 (left) vs the bot's best match, 1084 (right), synced on the match clock](docs/replay/screenshot-en.png)](https://justaboringname.github.io/mosim-rebuilt-bot/replay/)
+
+*Human 1118 (left) vs the bot's best match, 1084 (right). Click to open the interactive replay. The segment-by-segment comparison is in [Human 1118 vs bot 1084](#human-1118-vs-bot-1084-the-bots-best-match).*
 
 ## The short version
 

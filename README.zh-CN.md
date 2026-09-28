@@ -4,7 +4,11 @@ _Last updated: 2026-09-27_　·　[English](README.md) | **中文**　·　**[�
 
 目标：训练一个能自己开 4414 HighTide 打 [MoSimulator](https://store.steampowered.com/app/4398690/) REBUILT（FRC 2026）的 bot，超过人类个人最好成绩 **1118**，最好到 **1200**。结果没做到。这份文档讲清楚做了什么、每条路为什么走不通，以及学到的关于这个游戏和这类问题的东西。
 
-项目由 Claude（Anthropic 的 AI）在用户指导下完成，全部实验在一台 Mac Studio（M5 Max）上跑。
+项目由 Claude（Anthropic 的 AI）在用户指导下完成，全部实验在一台 Mac Studio（M5 Max）上跑。一共跑了约 5400 局完整的真游戏对局、约 9000 次从存档出发的半局推演，以及约 1 万局自建模拟器里的对局。
+
+[![左：人类 1118，右：bot 最高一局 1084，按比赛时钟同步](docs/replay/screenshot-zh.png)](https://justaboringname.github.io/mosim-rebuilt-bot/replay/?lang=zh)
+
+*左：人类 1118，右：bot 最高一局 1084。点击图片打开可交互的回放。逐段对比见下文 [人类 1118 对 bot 1084](#人类-1118-对-bot-1084bot-最高的一局)。*
 
 ## 结论先说
 
