@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>MoSimRL</AssemblyName>
+    <RootNamespace>MoSimRL</RootNamespace>
+    <LangVersion>9.0</LangVersion>
+    <Nullable>disable</Nullable>
+    <OutputPath>$(MSBuildThisFileDirectory)../bin/</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <DebugType>none</DebugType>
+    <MoSimManaged>$(HOME)/Library/Application Support/Steam/steamapps/common/MoSimulator/MoSimulator.app/Contents/Resources/Data/Managed</MoSimManaged>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(MoSimManaged)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(MoSimManaged)/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AudioModule"><HintPath>$(MoSimManaged)/UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MoSimCore"><HintPath>$(MoSimManaged)/MoSimCore.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="MoSimLib"><HintPath>$(MoSimManaged)/MoSimLib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="RobotFramework"><HintPath>$(MoSimManaged)/RobotFramework.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="GameSystems"><HintPath>$(MoSimManaged)/GameSystems.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Eflatun.SceneReference"><HintPath>$(MoSimManaged)/Eflatun.SceneReference.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.InputSystem"><HintPath>$(MoSimManaged)/Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule"><HintPath>$(MoSimManaged)/UnityEngine.JSONSerializeModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Rebuilt"><HintPath>$(MoSimManaged)/Rebuilt.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,17 @@
+# never publish: decompiled game code, game/mod binaries, run data
+re/
+backups/
+runs/
+run/*
+!run/demos/
+run/demos/*
+!run/demos/demo-20260926-015440-m1.jsonl
+harness/bin/
+**/bin/
+**/obj/
+__pycache__/
+*.pyc
+.venv/
+*.npz
+.DS_Store
+.claude/

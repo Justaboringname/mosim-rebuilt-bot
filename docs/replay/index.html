@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4414 HighTide replay: human vs bot</title>
+<meta name="description" content="Side-by-side top-down replay of the human 1118 match and bot matches in MoSimulator REBUILT (4414 HighTide).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eceee9; --panel:#f7f8f5; --ink:#18201c; --muted:#5a655f; --rule:#c9cfc6;
+  --carpet:#d8ddd4; --carpet-line:#bcc3b8; --struct:#8b958e; --struct-top:#6d776f;
+  --blue:#1f5bd6; --blue-soft:rgba(31,91,214,.10); --red:#c0463d; --red-soft:rgba(192,70,61,.08);
+  --fuel:#d9a300; --fuel-air:#ff7a1a;
+  --human:#3d3bbf; --bot:#0b8a6d; --dead:rgba(24,32,28,.07); --focus:#1f5bd6;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1312; --panel:#161b19; --ink:#e3e8e4; --muted:#95a19a; --rule:#2b332f;
+  --carpet:#1c2220; --carpet-line:#2c3431; --struct:#4d5752; --struct-top:#66716b;
+  --blue:#5b8cff; --blue-soft:rgba(91,140,255,.12); --red:#ec6b61; --red-soft:rgba(236,107,97,.08);
+  --fuel:#f0c020; --fuel-air:#ff9a4a; --human:#8d8bff; --bot:#34d1a8; --dead:rgba(227,232,228,.06); --focus:#5b8cff;
+  color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1312; --panel:#161b19; --ink:#e3e8e4; --muted:#95a19a; --rule:#2b332f;
+  --carpet:#1c2220; --carpet-line:#2c3431; --struct:#4d5752; --struct-top:#66716b;
+  --blue:#5b8cff; --blue-soft:rgba(91,140,255,.12); --red:#ec6b61; --red-soft:rgba(236,107,97,.08);
+  --fuel:#f0c020; --fuel-air:#ff9a4a; --human:#8d8bff; --bot:#34d1a8; --dead:rgba(227,232,228,.06); --focus:#5b8cff;
+  color-scheme:dark;}
+html,body{background:var(--bg);color:var(--ink)}
+body{font:14px/1.45 Barlow,"Helvetica Neue",Arial,"PingFang SC","Hiragino Sans GB",sans-serif;padding-inline:16px;padding-block:14px 28px}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+h1{font:700 26px/1.1 "Barlow Condensed","Arial Narrow",sans-serif;letter-spacing:.02em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin-top:2px}
+.clock{display:flex;align-items:baseline;gap:10px;font-family:"Barlow Condensed","Arial Narrow",sans-serif}
+.clock .t{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.clock .phase{font-size:15px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:var(--blue-soft);color:var(--blue)}
+.clock .phase.off{background:var(--dead);color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button,select{font:600 14px Barlow,sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:6px 12px;cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+button:focus-visible,select:focus-visible,canvas:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#play{min-width:74px}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:900px){.panels{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.who{display:flex;align-items:center;gap:8px;font:600 17px "Barlow Condensed",sans-serif;letter-spacing:.02em}
+.sw{width:12px;height:12px;border-radius:3px}
+.stats{display:flex;gap:14px;font-variant-numeric:tabular-nums}
+.stat{display:flex;flex-direction:column;align-items:flex-end}
+.stat b{font:700 22px/1 "Barlow Condensed",sans-serif}
+.stat span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;gap:6px}
+.chip{font:600 11px Barlow,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--rule);color:var(--muted)}
+.chip.on{color:var(--bg);border-color:transparent}
+.chip.on.in{background:var(--bot)} .chip.on.sh{background:var(--blue)} .chip.on.pa{background:var(--fuel);color:#1a1400}
+canvas.field{width:100%;aspect-ratio:16.54/8.21;max-width:100%;display:block;border-radius:4px}
+.tl{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
+.tl canvas{width:100%;height:190px;display:block;cursor:pointer;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--muted);font-size:13px;margin-top:6px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+.notes{color:var(--muted);font-size:13px;max-width:70ch}
+.moments{gap:6px}.moments .mlabel{color:var(--muted);font-size:13px;margin-right:4px}
+.jump{font-size:13px;padding:4px 10px;font-weight:500}
+kbd{font:600 12px Barlow,sans-serif;border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 5px}
+.langbtn{margin-left:auto}.back{color:var(--muted);font-size:13px}.back a{color:inherit}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1 data-i18n="h1"></h1>
+      <div class="sub" data-i18n="sub"></div>
+    </div>
+    <div class="clock"><span class="t" id="clock">2:40</span><span class="phase" id="phase">AUTO</span></div>
+  </header>
+
+  <div class="controls">
+    <button id="play" type="button"></button>
+    <button type="button" class="spd" data-s="1">1×</button>
+    <button type="button" class="spd" data-s="2" aria-pressed="true">2×</button>
+    <button type="button" class="spd" data-s="4">4×</button>
+    <button type="button" class="spd" data-s="8">8×</button>
+    <select id="botsel" data-i18n-aria="botsel"></select>
+    <button id="ghost" type="button" aria-pressed="true" data-i18n="ghost"></button>
+    <button id="lang" class="langbtn" type="button" aria-label="Language / 语言">中文</button>
+  </div>
+  <div class="controls moments">
+    <span class="mlabel" data-i18n="mlabel"></span>
+    <button type="button" class="jump" data-t="131.5" data-i18n="j131.5"></button>
+    <button type="button" class="jump" data-t="104.5" data-i18n="j104.5"></button>
+    <button type="button" class="jump" data-t="81.5" data-i18n="j81.5"></button>
+    <button type="button" class="jump" data-t="57" data-i18n="j57"></button>
+    <button type="button" class="jump" data-t="54.5" data-i18n="j54.5"></button>
+    <button type="button" class="jump" data-t="30" data-i18n="j30"></button>
+  </div>
+
+  <div class="panels">
+    <section class="panel" id="pH">
+      <div class="ph">
+        <div class="who"><span class="sw" style="background:var(--human)"></span><span class="nm"></span></div>
+        <div class="chips"><span class="chip in">Intake</span><span class="chip sh">Shoot</span><span class="chip pa">Pass</span></div>
+        <div class="stats"><div class="stat"><b class="sc">0</b><span data-i18n="score"></span></div><div class="stat"><b class="hd">0</b><span data-i18n="held"></span></div><div class="stat"><b class="st">0</b><span data-i18n="stock"></span></div></div>
+      </div>
+      <canvas class="field" tabindex="0" data-i18n-aria="cvH"></canvas>
+    </section>
+    <section class="panel" id="pB">
+      <div class="ph">
+        <div class="who"><span class="sw" style="background:var(--bot)"></span><span class="nm"></span></div>
+        <div class="chips"><span class="chip in">Intake</span><span class="chip sh">Shoot</span><span class="chip pa">Pass</span></div>
+        <div class="stats"><div class="stat"><b class="sc">0</b><span data-i18n="score"></span></div><div class="stat"><b class="hd">0</b><span data-i18n="held"></span></div><div class="stat"><b class="st">0</b><span data-i18n="stock"></span></div></div>
+      </div>
+      <canvas class="field" tabindex="0" data-i18n-aria="cvB"></canvas>
+    </section>
+  </div>
+
+  <section class="tl">
+    <canvas id="tl" data-i18n-aria="tlaria"></canvas>
+    <div class="legend">
+      <span><i style="background:var(--human)"></i><b data-i18n="lgH" style="font-weight:inherit"></b></span>
+      <span><i style="background:var(--bot)"></i><b data-i18n="lgB" style="font-weight:inherit"></b></span>
+      <span><i style="background:var(--human);opacity:.45"></i><i style="background:var(--bot);opacity:.45;margin-left:-2px"></i><b data-i18n="lgHeld" style="font-weight:inherit"></b></span>
+      <span><i style="background:var(--dead);height:10px"></i><b data-i18n="lgDead" style="font-weight:inherit"></b></span>
+    </div>
+  </section>
+
+  <p class="notes" data-i18n-html="notes"></p>
+  <p class="back"><a href="https://github.com/Justaboringname/mosim-rebuilt-bot">github.com/Justaboringname/mosim-rebuilt-bot</a></p>
+</div>
+
+<script src="data.js"></script>
+<script>
+(async function(){
+const I18N = {"h1": ["4414 HighTide replay: human vs bot", "4414 HighTide 回放对比：人类 vs bot"], "sub": ["Left: the human 1118 match. Right: a bot match (pick one in the menu; the default is the bot’s best, 1084). Both synced on the match clock.", "左：人类 1118 那局　右：bot 对局（下拉可选，默认是 bot 最高分 1084 那局）· 按比赛时钟同步"], "ghost": ["Overlay the other robot", "叠加对方车位"], "mlabel": ["Where 1118 beats 1084 (points per segment):", "1118 对 1084 差在哪（每段的数字是该段得分）："], "j131.5": ["130 s hub off: human holds 39, bot 17; grace period 46 vs 38", "130 秒 hub 关：人类车上 39 个、bot 17 个，宽限期人类 46 · bot 38"], "j104.5": ["105–80 active: 286 vs 272", "105–80 主动窗口：人类 286 · bot 272"], "j81.5": ["80 s hub off: grace period 44 vs 34", "80 秒 hub 关：宽限期人类 44 · bot 34"], "j57": ["Just before 55 s: held + stock 360 vs 328", "55 秒前：人类车上+存区 360 · bot 328"], "j54.5": ["55–30 active: 278 vs 269", "55–30：人类 278 · bot 269"], "j30": ["30–0: 233 vs 225 (bot +8 after the buzzer)", "30–0：人类 233 · bot 225（终场后 bot 多进 8）"], "score": ["Score", "得分"], "held": ["Held", "车上"], "stock": ["Stock", "本区存球"], "lgH": ["Human score", "人类得分"], "lgB": ["Bot score", "bot 得分"], "lgHeld": ["Balls held (lower half)", "车上持球（下半部）"], "lgDead": ["Blue hub inactive", "蓝方 hub 关闭（含 3 秒宽限前）"], "notes": ["Balls: yellow on the floor, orange in the air. Robot: square body; the thick edge is the intake side. <b>Stock</b> = balls on the floor in the blue alliance zone (x &gt; 4.25 m). Keys: <kbd>Space</kbd> play/pause, <kbd>←</kbd><kbd>→</kbd> jump 1 s (hold <kbd>Shift</kbd>: 5 s); click or drag the timeline to seek. Data: the human match was recorded in-game (robot pose and inputs every 0.1 s, all balls every ~0.5 s); bot matches are from the harness in this repo.", "球：黄点在地面，橙点在空中。车：方块为车身，粗边是吸球口一侧。<b>本区存球</b> = 蓝方区域（x &gt; 4.25 m）地面上的球。操作：<kbd>空格</kbd> 播放/暂停，<kbd>←</kbd><kbd>→</kbd> 跳 1 秒，按住 <kbd>Shift</kbd> 跳 5 秒；点或拖动时间轴跳转。数据：人类那局是游戏内录制的（每 0.1 秒记录车的位姿和操作，约每 0.5 秒记录全部球的位置）；bot 对局来自本仓库的 harness。"], "botsel": ["Choose a bot match", "选择 bot 对局"], "cvH": ["Human match, top view", "人类对局俯视图"], "cvB": ["Bot match, top view", "bot 对局俯视图"], "tlaria": ["Timeline: drag to seek", "时间轴：拖动跳转"], "play": ["▶ Play", "▶ 播放"], "pause": ["❚❚ Pause", "❚❚ 暂停"], "tlHeld": ["held", "车上"], "ph1": ["Transition · both hubs", "过渡 · 双方开"], "ph2": ["Blue hub off", "蓝方 hub 关"], "ph3": ["Blue hub on", "蓝方 hub 开"], "ph6": ["Endgame · both hubs", "终局 · 双方开"]};
+let LANG = (() => { const q = new URLSearchParams(location.search).get("lang"); if (q === "en" || q === "zh") return q;
+  try { const s = localStorage.getItem("mosim-replay-lang"); if (s) return s; } catch (e) {}
+  return (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "en"; })();
+const TR = k => (I18N[k] || [k, k])[LANG === "zh" ? 1 : 0];
+function applyLang(){
+  document.documentElement.lang = LANG === "zh" ? "zh-CN" : "en";
+  document.title = TR("h1");
+  document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = TR(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-html]").forEach(el => el.innerHTML = TR(el.dataset.i18nHtml));
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => el.setAttribute("aria-label", TR(el.dataset.i18nAria)));
+  document.getElementById("lang").textContent = LANG === "zh" ? "English" : "中文";
+}
+applyLang();
+const R = REPLAY;
+const NAME = d => LANG === "zh" ? (d.name_zh || d.name) : (d.name_en || d.name);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const FX = 8.27, FZ = 4.105;              // field half extents (m)
+
+async function inflate(b64){
+  const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const buf = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+  return new Int16Array(buf);
+}
+// elapsed-time axis: match clock counts down and stops for 3 s at 140 (auto -> teleop pause)
+function elapsed(t){
+  const e = new Float64Array(t.length); let acc = 0;
+  for (let i = 1; i < t.length; i++){ const d = t[i-1] - t[i]; acc += d > 1e-4 ? d : (Math.abs(t[i]-140) < 0.05 || t[i] <= 0 ? 0.1 : 0); e[i] = acc; }
+  return e;
+}
+async function prep(d){
+  d.e = elapsed(d.t);
+  const flat = await inflate(d.b64); d.frames = []; let o = 0;
+  for (const n of d.counts){ d.frames.push(flat.subarray(o, o + 3*n)); o += 3*n; }
+  d.fe = d.fi.map(i => d.e[i]);
+  return d;
+}
+const H = await prep(R.human);
+for (const b of R.bots) await prep(b);
+let B = R.bots[0];
+const END = Math.max(H.e[H.e.length-1], ...R.bots.map(b => b.e[b.e.length-1]));
+
+function idxAt(arr, x){ let lo = 0, hi = arr.length - 1; if (x <= arr[0]) return 0; if (x >= arr[hi]) return hi;
+  while (hi - lo > 1){ const m = (lo+hi) >> 1; if (arr[m] <= x) lo = m; else hi = m; } return lo; }
+
+// ---------------------------------------------------------------- field drawing
+function sizeCanvas(c){ const r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const w = Math.round(r.width*dpr), h = Math.round(r.height*dpr); if (c.width !== w || c.height !== h){ c.width = w; c.height = h; } return [w, h, dpr]; }
+function drawField(c, d, other, e){
+  const [w, h] = sizeCanvas(c), ctx = c.getContext("2d");
+  const s = Math.min(w/(2*FX+0.3), h/(2*FZ+0.3)), ox = w/2, oz = h/2;
+  const X = x => ox + x*s, Z = z => oz - z*s;
+  ctx.fillStyle = css("--carpet"); ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = css("--red-soft"); ctx.fillRect(X(-FX), Z(FZ), (FX-4.25)*s, 2*FZ*s);
+  ctx.fillStyle = css("--blue-soft"); ctx.fillRect(X(4.25), Z(FZ), (FX-4.25)*s, 2*FZ*s);
+  ctx.strokeStyle = css("--carpet-line"); ctx.lineWidth = Math.max(1, s*0.03);
+  ctx.strokeRect(X(-FX), Z(FZ), 2*FX*s, 2*FZ*s);
+  ctx.beginPath(); ctx.moveTo(X(0), Z(FZ)); ctx.lineTo(X(0), Z(-FZ)); ctx.stroke();
+  ctx.setLineDash([s*0.15, s*0.12]);
+  for (const x of [-4.25, 4.25]){ ctx.beginPath(); ctx.moveTo(X(x), Z(FZ)); ctx.lineTo(X(x), Z(-FZ)); ctx.stroke(); }
+  ctx.setLineDash([]);
+  for (const f of R.field){
+    if (f.top < 0.06) continue;                       // flat plates (depot sides, outpost ramp) do not block anything
+    ctx.beginPath(); f.p.forEach(([x,z], i) => i ? ctx.lineTo(X(x), Z(z)) : ctx.moveTo(X(x), Z(z))); ctx.closePath();
+    ctx.fillStyle = css("--struct") + (f.k === "bump" ? "70" : f.k === "trench" ? "38" : f.k === "hub" ? "e6" : "8c");
+    ctx.fill();
+  }
+  // balls
+  const fi = idxAt(d.fe, e), fr = d.frames[fi];
+  const rr = Math.max(1.4, 0.075*s);
+  const floorC = css("--fuel"), airC = css("--fuel-air");
+  for (let k = 0; k < fr.length; k += 3){
+    const x = fr[k]/100, z = fr[k+1]/100, y = fr[k+2]/100;
+    ctx.fillStyle = y > 0.25 ? airC : floorC;
+    ctx.beginPath(); ctx.arc(X(x), Z(z), y > 0.25 ? rr*1.15 : rr, 0, 6.2832); ctx.fill();
+  }
+  // other robot (outline) then own robot
+  const i = idxAt(d.e, e), rob = d.robot[i];
+  if (other && ghostOn){ const j = idxAt(other.e, e); robot(ctx, X, Z, s, other.robot[j], other === H ? css("--human") : css("--bot"), true); }
+  robot(ctx, X, Z, s, rob, d === H ? css("--human") : css("--bot"), false);
+  return {i, fi};
+}
+function robot(ctx, X, Z, s, r, col, outline){
+  const [x, z, yaw] = r, a = yaw*Math.PI/180, hw = 0.43*s;
+  ctx.save(); ctx.translate(X(x), Z(z)); ctx.rotate(a);      // yaw 0 = +z (screen up), 90 = +x (screen right)
+  ctx.lineWidth = Math.max(1.5, 0.05*s);
+  if (outline){ ctx.setLineDash([s*0.08, s*0.06]); ctx.strokeStyle = col; ctx.globalAlpha = .8; ctx.strokeRect(-hw, -hw, 2*hw, 2*hw); }
+  else { ctx.fillStyle = col; ctx.globalAlpha = .88; ctx.fillRect(-hw, -hw, 2*hw, 2*hw);
+    ctx.globalAlpha = 1; ctx.fillStyle = css("--panel"); ctx.fillRect(-hw, -hw - 0.09*s, 2*hw, 0.09*s); }
+  ctx.restore();
+}
+// ---------------------------------------------------------------- panels
+const P = { H: document.getElementById("pH"), B: document.getElementById("pB") };
+function stock(fr){ let n = 0; for (let k = 0; k < fr.length; k += 3) if (fr[k] > 425 && fr[k+2] < 25) n++; return n; }
+function updPanel(p, d, other, e){
+  const {i, fi} = drawField(p.querySelector("canvas"), d, other, e), r = d.robot[i];
+  p.querySelector(".nm").textContent = NAME(d);
+  p.querySelector(".sc").textContent = r[4]; p.querySelector(".hd").textContent = r[3];
+  p.querySelector(".st").textContent = stock(d.frames[fi]);
+  const bits = r[5], chip = p.querySelectorAll(".chip");        // buttons packed MSB first: intake, shoot, pass, manual, special
+  chip[0].classList.toggle("on", !!(bits & 16)); chip[1].classList.toggle("on", !!(bits & 8)); chip[2].classList.toggle("on", !!(bits & 4));
+  return r;
+}
+// ---------------------------------------------------------------- timeline
+const tl = document.getElementById("tl");
+const phases = [[160,140,"AUTO"],[140,130,"ph1"],[130,105,"ph2"],[105,80,"ph3"],[80,55,"ph2"],[55,30,"ph3"],[30,0,"ph6"]];
+function clockToE(t){ const i = H.t.findIndex(x => x <= t); return i < 0 ? END : H.e[i]; }
+function drawTL(e){
+  const [w, h, dpr] = sizeCanvas(tl), ctx = tl.getContext("2d");
+  const L = 34*dpr, Rr = 8*dpr, T = 8*dpr, mid = h*0.62, Bm = h - 16*dpr;
+  const X = v => L + (w-L-Rr)*v/END;
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle = css("--dead");
+  for (const [hi, lo] of [[130,105],[80,55]]) ctx.fillRect(X(clockToE(hi)), T, X(clockToE(lo)) - X(clockToE(hi)), Bm - T);
+  ctx.font = `${11*dpr}px Barlow, sans-serif`; ctx.fillStyle = css("--muted"); ctx.textBaseline = "top";
+  for (const c of [160,140,130,105,80,55,30,0]){ const x = X(clockToE(c)); ctx.fillRect(x, Bm, 1, 4*dpr); ctx.fillText(String(c), x - 7*dpr, Bm + 4*dpr); }
+  // score axis
+  const smax = 1150, Ys = v => mid - (mid - T)*v/smax;
+  ctx.strokeStyle = css("--rule"); ctx.lineWidth = 1;
+  for (const v of [0, 500, 1000]){ ctx.beginPath(); ctx.moveTo(L, Ys(v)); ctx.lineTo(w-Rr, Ys(v)); ctx.stroke(); ctx.fillText(String(v), 2*dpr, Ys(v) - 6*dpr); }
+  const hmax = 110, Yh = v => Bm - (Bm - mid - 6*dpr)*v/hmax;
+  const line = (d, k, Y, col, a) => { ctx.globalAlpha = a; ctx.strokeStyle = col; ctx.lineWidth = 1.6*dpr; ctx.beginPath();
+    for (let i = 0; i < d.e.length; i += 2){ const x = X(d.e[i]), y = Y(d.robot[i][k]); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); ctx.globalAlpha = 1; };
+  line(H, 4, Ys, css("--human"), 1); line(B, 4, Ys, css("--bot"), 1);
+  line(H, 3, Yh, css("--human"), .45); line(B, 3, Yh, css("--bot"), .45);
+  ctx.fillStyle = css("--muted"); ctx.fillText(TR("tlHeld"), 2*dpr, mid + 4*dpr);
+  // cursor
+  const x = X(e); ctx.strokeStyle = css("--ink"); ctx.lineWidth = 1.5*dpr; ctx.beginPath(); ctx.moveTo(x, T); ctx.lineTo(x, Bm); ctx.stroke();
+  return X;
+}
+function eFromEvent(ev){ const r = tl.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; const L = 34, Rr = 8;
+  return Math.max(0, Math.min(END, (ev.clientX - r.left - L) / (r.width - L - Rr) * END)); }
+let drag = false;
+tl.addEventListener("pointerdown", ev => { drag = true; tl.setPointerCapture(ev.pointerId); now = eFromEvent(ev); render(); });
+tl.addEventListener("pointermove", ev => { if (drag){ now = eFromEvent(ev); render(); } });
+tl.addEventListener("pointerup", () => drag = false);
+// ---------------------------------------------------------------- state / loop
+let now = 0, playing = false, speed = 2, ghostOn = true, last = 0;
+const sel = document.getElementById("botsel");
+function fillSel(){ sel.innerHTML = ""; R.bots.forEach((b, i) => { const o = document.createElement("option"); o.value = i; o.textContent = NAME(b); sel.appendChild(o); }); sel.value = String(R.bots.indexOf(B)); }
+fillSel();
+sel.addEventListener("change", () => { B = R.bots[+sel.value]; render(); });
+document.getElementById("ghost").addEventListener("click", ev => { ghostOn = !ghostOn; ev.currentTarget.setAttribute("aria-pressed", ghostOn); render(); });
+document.querySelectorAll(".spd").forEach(b => b.addEventListener("click", () => { speed = +b.dataset.s;
+  document.querySelectorAll(".spd").forEach(x => x.setAttribute("aria-pressed", x === b)); }));
+document.querySelectorAll(".jump").forEach(b => b.addEventListener("click", () => { setPlay(false); now = clockToE(+b.dataset.t); render(); }));
+const playBtn = document.getElementById("play");
+function setPlay(p){ playing = p; playBtn.textContent = TR(p ? "pause" : "play"); if (p){ if (now >= END) now = 0; last = performance.now(); requestAnimationFrame(tick); } }
+playBtn.textContent = TR("play");
+playBtn.addEventListener("click", () => setPlay(!playing));
+document.getElementById("lang").addEventListener("click", () => { LANG = LANG === "zh" ? "en" : "zh"; try { localStorage.setItem("mosim-replay-lang", LANG); } catch (e) {} applyLang(); fillSel(); playBtn.textContent = TR(playing ? "pause" : "play"); render(); });
+document.addEventListener("keydown", ev => {
+  if (ev.target.tagName === "SELECT") return;
+  if (ev.code === "Space"){ ev.preventDefault(); setPlay(!playing); }
+  if (ev.code === "ArrowRight" || ev.code === "ArrowLeft"){ ev.preventDefault(); const d = (ev.shiftKey ? 5 : 1) * (ev.code === "ArrowRight" ? 1 : -1); now = Math.max(0, Math.min(END, now + d)); render(); }
+});
+function tick(ts){ if (!playing) return; now += (ts - last)/1000*speed; last = ts; if (now >= END){ now = END; setPlay(false); } render(); if (playing) requestAnimationFrame(tick); }
+function fmt(t){ t = Math.max(0, t); const m = Math.floor(t/60), s = t - 60*m; return `${m}:${s.toFixed(1).padStart(4, "0")}`; }
+function render(){
+  updPanel(P.H, H, B, now); updPanel(P.B, B, H, now);
+  const t = H.t[idxAt(H.e, now)];
+  document.getElementById("clock").textContent = fmt(t);
+  const ph = phases.find(([hi, lo]) => t <= hi && t > lo) || phases[6];
+  const pe = document.getElementById("phase"); pe.textContent = ph[2] === "AUTO" ? "AUTO" : TR(ph[2]); pe.classList.toggle("off", ph[2] === "ph2");
+  drawTL(now);
+}
+window.addEventListener("resize", render);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", render);
+new MutationObserver(render).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+now = clockToE(137.2);               // open on the turn at 137 s where the heading fix mattered
+render();
+})();
+</script>
+</body>
+</html>
