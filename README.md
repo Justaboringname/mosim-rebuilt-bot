@@ -22,7 +22,7 @@ The work was done by Claude (Anthropic's AI) under the user's direction. Every e
 | 2 | **Demo tracking** (ghost tracker: PD + the human's stick as feed-forward) + CMA-ES over its gains + diagnosed execution fixes | **≈ 1021, the final bot** |
 | 3 | Rule-based deviations from the route: greedy lateral offsets, CMA segment shifts, route splicing, free ball seeking, offline-model-bent routes | All lost (751–869 vs 897–1025 controls) |
 | 4 | PPO in the real game (residual on the tracker: lateral offset + time warp, CNN over ball grids) | 1 iteration: exploring policy 784 vs control 905; moved to a simulator |
-| 5 | Own simulator (MiniSim: PhysX-parameter ball physics + re-implemented match logic) + PPO (CNN residual, domain randomization, potential shaping) | Sim +38 / +52 → real −32 / −33 |
+| 5 | Own simulator (MiniSim: PhysX-parameter ball physics + re-implemented match logic) + PPO (CNN residual, domain randomization, potential shaping) | Sim +38 / +52 → real −32 / −33 (weights in [`weights/`](weights/)) |
 | 6 | Real-engine MPC: snapshot lookahead over sweeps, offsets, time warps, route switches | Single matches 987 / 892 / 1031; never beat tracking |
 | 7 | Reactive ball-aware steering (LBS), pile registration (REG) | −34 / −24 owned balls per dead window |
 | 8 | Whole-window coverage planning: static intake estimator + beam search (CR) | −106 owned per dead window |
@@ -226,6 +226,7 @@ Counting owned balls at 1.0 is a proxy an optimizer will exploit; that is how ys
 | `py/minisim/` | MiniSim: PhysX-parameter ball physics plus a re-implementation of the match logic, PPO (`rl.py`) and calibration scripts |
 | `docs/replay/` | Side-by-side replay page (English / Chinese, GitHub Pages) |
 | `docs/research-log/` | Full experiment log: `STATUS.zh.md` (progress log, Chinese) and `proposals.md` (pre-registered criteria, results and supplementary measurements, English) |
+| `weights/` | The two MiniSim PPO residual policies that were tested in the real game (both lost), with a loading example |
 | `run/demos/demo-20260926-015440-m1.jsonl` | The human 1118 match: one line per 0.1 s with robot pose, stick and buttons, plus all ball positions about every 0.5 s. The tracker drives this. Other demos are not published. |
 
 - **Game-derived data included.** `py/minisim/field_obbs.json` and `robot_obstacles.json` hold collider dimensions read from the game's field scene (numbers only); the replay page's field outline comes from them. `hit_table.json` and `launch_table.json` are our own measurements.
